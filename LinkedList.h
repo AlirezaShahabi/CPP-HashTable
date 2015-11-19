@@ -2,43 +2,49 @@
 #ifndef LINKEDLIST_H
 #define LINKEDLIST_H
 
-
+#include <iostream>
 #include <string>
 
-
 class LinkedList {
-    
 friend class Hash;
-    
+friend void swap (LinkedList& lhs, LinkedList& rhs) {
+    using std::swap;
+    swap(lhs.head, rhs.head);
+    swap(lhs.length, rhs.length);
+}
 private:
     struct Node{
-        std::string name; // key (unique)
-        double number;    // value
-        Node* next;       // pointer to next node
+        std::string name;
+        long phone_number;
+        Node* next;
+        // Node constructor
+        Node(std::string s, long n):name(s),phone_number(n),
+        next(nullptr) {}
+        Node():name(),phone_number(0),next(nullptr) {}
     };
     Node* head;
     int length;
     // private utility functions
-    void copier(const LinkedList&);
-    void terminator();
-    
+    Node* find_helper(Node*, std::string) const;
+    void copy_helper(Node*&, Node*);
+    void delete_helper(Node*);
 public:
-    // constructor and copy constructor/assignment operator
+    // constructor - assignment - destructor
     LinkedList();
     LinkedList(const LinkedList&);
-    LinkedList& operator=(const LinkedList&);
-    // add/remove 
-    void add_Node(std::string, double);
-    void rem_Node(std::string);
-    void update(std::string, double);
-    // retrieve information
-    void print_Node(std::string) const;
-    void print_List() const;
-    int  get_Length() const;
-    // destructor
+    LinkedList& operator=(LinkedList);
+    LinkedList(LinkedList&&);
     ~LinkedList();
+    // update - add - remove
+    LinkedList& update_node(std::string, long);
+    LinkedList& add_node(std::string, long);
+    LinkedList& rem_node(std::string);
+    // retrieve information
+    void print_node(std::string) const;
+    void print_list(std::ostream&) const;
+    int  get_length() const;
 };
 
-
 #endif
+
 

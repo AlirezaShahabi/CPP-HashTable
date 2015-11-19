@@ -6,37 +6,35 @@
 #include "LinkedList.h"
 
 
-class Hash{
-    
+class Hash {
 private:
     static const int table_size = 4;
     LinkedList* HashTable;
+    Hash& swap(Hash& rhs) {
+        LinkedList* temp = rhs.HashTable;
+        rhs.HashTable = this->HashTable;
+        this->HashTable = temp;
+        return *this;
+    }
     // utility hash functon
     int Hash_Function(std::string) const;
-    
 public:
-    // constructor and copy constructor/operator
+    // constructor - assignment - destructor
     Hash();
     Hash(const Hash&);
-    Hash& operator=(const Hash&);
-        
-    // add/remove
-    void add_item(std::string, double);
-    void rem_item(std::string);
-    void update(std::string, double);
-    
+    Hash& operator=(Hash);
+    Hash(Hash&&);
+    ~Hash();
+    // update - add - remove
+    Hash& update_item(std::string, long);
+    Hash& add_item(std::string, long);
+    Hash& rem_item(std::string);
     // retrieve information
     void print_item(std::string) const;
     int  bucket_size(int) const;
-    void print_bucket(int) const;
-    void print_table() const;
-    
-    // destructor
-    ~Hash();
-    
+    void print_bucket(int, std::ostream&) const;
+    void print_table() const;    
 };
 
-
 #endif
-
 

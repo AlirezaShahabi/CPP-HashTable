@@ -7,203 +7,158 @@
 // constructor
 LinkedList::LinkedList():head(nullptr),length(0) {}
 
-
-
 // copy constructor
-LinkedList::LinkedList(const LinkedList& rhs){
-    copier(rhs);
+LinkedList::LinkedList(const LinkedList& rhs):head(new Node),
+length(rhs.length) {
+    if (rhs.head) {copy_helper(head,rhs.head);}
 }
 
-
-
-// copy assignment operator
-LinkedList& LinkedList::operator=(const LinkedList& rhs){
-    terminator();
-    copier(rhs);
+// assignment operator (copy-move)
+LinkedList& LinkedList::operator=(LinkedList rhs) {
+    swap(*this, rhs);
     return *this;
 }
 
-
-
-// add a new Node to *this
-void LinkedList::add_Node(std::string name, double number){
-    Node* newNode = new Node;
-    newNode->name = name;
-    newNode->number = number;
-    newNode->next = nullptr;
-    
-    if (head == nullptr) {
-        head = newNode;
-    }else{
-        Node* curr = head;
-        while (curr->next != nullptr) {
-            curr = curr->next;
-        }
-        curr->next = newNode;
-    }
-    ++length;
+// move constructor
+LinkedList::LinkedList(LinkedList&& rhs):LinkedList() {
+    swap(*this, rhs);
 }
 
-
-
-// remove the Node keyed by name from *this
-void LinkedList::rem_Node(std::string name){
-    if (head == nullptr) {
-        std::cout << "list is empty!" << std::endl;
-    }else{
-        
-        Node* delPtr = nullptr;
-        Node* p1 = head;
-        Node* p2 = head->next;
-        
-        if (head->name == name) {
-            
-            delPtr = head;
-            head = head->next;
-            delete delPtr;
-            --length;
-            
-        }else{
-            
-            bool exist = false;
-            while (p2 != nullptr) {
-                if (p2->name == name) {
-                    exist = true;
-                    break;
-                }
-                p1 = p2;
-                p2 = p2->next;
-            }
-            if (exist) {
-                delPtr = p2;
-                p2 = p2->next;
-                p1->next = p2;
-                delete delPtr;
-                --length;
-            }else{
-                std::cout << name << " does NOT exist!" << std::endl;
-            }
-        
-        }
-    }
-}
-
-
+// destructor
+LinkedList::~LinkedList() {if (head) {delete_helper(head);}}
 
 // updata the value of the node keyed by name
-void LinkedList::update(std::string name, double number){
-    if (head == nullptr) {
-        std::cout << "list is empty!" << std::endl;
-    }else{
-        
+LinkedList& LinkedList::update_node(std::string name, long new_number) {
+    if (!head) {
+        std::cout << "list is empty" << std::endl;
+    } else {
+        Node* ans = find_helper(head, name);
+        if (ans) {
+            ans->phone_number = new_number;
+        } else {
+            std::cout << name << " is not in the list" << std::endl;
+        }
+    }
+    return *this;
+}
+
+// add a new Node to the front of *this
+LinkedList& LinkedList::add_node(std::string new_name, long new_number) {
+    Node* new_node = new Node(new_name, new_number);
+    if (!head) {
+        head = new_node;
+    } else {
+        Node* old_head = head;
+        new_node->next = old_head;
+        head = new_node;
+    }
+    ++length;
+    return *this;
+}
+
+// remove the Node keyed by name from *this
+LinkedList& LinkedList::rem_node(std::string name) {
+    if (!head) {
+        std::cout << "list is empty" << std::endl;
+    } else if (head->name == name) {
+        Node* old_head = head;
+        Node* delptr = old_head;
+        head = old_head->next;
+        delptr->next = nullptr;
+        delete delptr;
+        --length;
+    } else {
+        Node* prev = nullptr;
         Node* curr = head;
-        while (curr->name != name && curr->next != nullptr) {
+        while (curr && curr->name != name) {
+            prev = curr;
             curr = curr->next;
         }
-        if (curr->name == name){
-            curr->number = number;
-        }else{
-            std::cout << name << " does NOT exist!" << std::endl;
+        if (!curr) {
+            std::cout << name << " is not in the list" << std::endl;
+        } else {
+            Node* delptr = curr;
+            prev->next = curr->next;
+            delptr->next = nullptr;
+            delete delptr;
+            --length;
+        }
+    }
+    return *this;
+}
+
+// print the phone number in the node keyed by name
+void LinkedList::print_node(std::string name) const {
+    if (!head) {
+        std::cout << "list is empty" << std::endl;
+    } else {
+        Node* ans = find_helper(head, name);
+        if (ans) {
+            std::cout << name << "'s phone number is: ";
+            std::cout << ans->phone_number << std::endl;
+        } else {
+            std::cout << name << " is not in the list" << std::endl;
         }
     }
 }
 
-
-
-// print the data in the node keyed by name
-void LinkedList::print_Node(std::string name) const {
-    if (head == nullptr){
-        std::cout << "list is empty!" << std::endl;
-    }else{
-        
-        Node* curr = head;
-        while (curr->name != name && curr->next != nullptr) {
-            curr = curr->next;
-        }
-        if (curr->name == name) {
-            std::cout << curr->name << ": " << curr->number;
-            std::cout << std::endl;
-        }else{
-            std::cout << name << " does NOT exist!" << std::endl;
-        }
+// print all the names and phone numbers in the nodes of *this
+void LinkedList::print_list(std::ostream& os) const {
+    Node* curr = head;
+    while (curr) {
+        os << curr->name << "'s phone number is: ";
+        os << curr->phone_number << std::endl;
+        curr = curr->next;
     }
-}
-
-
-
-// print all the data in the nodes of *this
-void LinkedList::print_List() const {
-    if (head == nullptr){
-        std::cout << "list is empty!" << std::endl;
-    }else{
-        
-        Node* curr = head;
-        while (curr->next != nullptr) {
-            std::cout << curr->name << ": " << curr->number << " - ";
-            curr = curr->next;
-        }
-        std::cout << curr->name << ": " << curr->number << std::endl;
-    }
+    os << std::endl;
 }
 
 
 
 // return the number of nodes in *this
-int LinkedList::get_Length() const {return length;}
+int LinkedList::get_length() const {return length;}
 
 
 
-// destructor
-LinkedList::~LinkedList() {
-    terminator();
-}
+// private utility functions:
 
 
-// utility functions:
-
-
-// utility function used by copy constructor and copy assignment
-// operator. copies all the Nodes and length from obj into *this
-void LinkedList::copier(const LinkedList& obj){
-    if (obj.head == nullptr) {
-        length = 0;
-        head = nullptr;
-    }else{
-        length = obj.length;
-        
-        Node* p1 = nullptr;    // points to current Node in *this
-        Node* p2 = nullptr;    // points to next Node in *this
-        
-        head = new Node;
-        head->name   = obj.head->name;
-        head->number = obj.head->number;
-        p1 = head;
-        p2 = obj.head->next;
-        
-        while (p2 != nullptr) {
-            p1->next = new Node;
-            p1 = p1->next;
-            p1->name   = p2->name;
-            p1->number = p2->number;
-            p2 = p2->next;
-        }
-        p1->next = nullptr;
+// used by update_node, print_node
+// start searching at temp, return a pinter to the node with name
+LinkedList::Node* LinkedList::find_helper(Node* temp, std::string name) const {
+    while (temp && temp->name != name) {
+        temp = temp->next;
     }
+    return (temp ? temp:nullptr);
+}
+
+
+// used by copy constructor
+// makes a deep copy of all the Nodes starting at source into target
+void LinkedList::copy_helper(Node*& target, Node* source) {
+    Node* creator = new Node(source->name, source->phone_number);
+    target = creator;
+    Node* iterator = source->next;
+    while (iterator) {
+        creator->next = new Node;
+        creator = creator->next;
+        creator->name = iterator->name;
+        creator->phone_number = iterator->phone_number;
+        iterator = iterator->next;
+    }
+    creator->next = nullptr;
 }
 
 
 
-// utility function used by destructor and copy assinment operator
-// destryos all the nodes in *this and frees up resources
-void LinkedList::terminator(){
-    if (head != nullptr){
-        Node* curr = head;
-        while (curr->next != nullptr) {
-            Node* delPtr = curr;
-            curr = curr->next;
-            delete delPtr;
-        }
-        delete curr;
+// used by destructor
+// destryos all the nodes starting at curr to the end and frees up resources
+void LinkedList::delete_helper(Node* curr) {
+    while (curr) {
+        Node* delptr = curr;
+        curr = curr->next;
+        delptr->next = nullptr;
+        delete delptr;
     }
 }
 
